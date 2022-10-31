@@ -1,0 +1,32 @@
+---
+# tasks file for ntp_client_Fedora
+#installing and configuring ntp on fedora client
+- name: install and conifgure fedora ntp client
+  hosts: Fedora
+  handlers:
+  tasks:
+    - name: installing chrony for ntp client
+      ansible.builtin.dnf:
+        name: chrony
+        state: present
+      become: true
+    
+    - name: enable chronyd
+      ansible.builtin.systemd:
+        name: chronyd
+        enabled: yes
+      become: true
+
+    - name: edit chrony config
+      ansible.builtin.lineinfile:
+        path: /etc/chrony.conf
+        line: "server 203.0.113.200 prefer"
+        state: present
+        backup: yes
+      become: true
+
+    - name: restart chronyd
+      ansible.builtin.systemd:
+        name: chronyd
+        state: restarted
+      become: true

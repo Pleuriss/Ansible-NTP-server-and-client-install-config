@@ -1,0 +1,46 @@
+---
+# tasks file for ntp_server
+#install and configure ntp server
+- name: install and configure ntp (server)
+  hosts: localhost
+  connection: local
+  handlers:
+  tasks:
+    - name: install ntp
+      ansible.builtin.apt:
+        name: ntp
+        state: present
+      become: true
+
+    - name: configuratie syslog
+      ansible.builtin.blockinfile:
+        block: |
+          server 0.be.pool.ntp.org
+          server 1.be.poo.ntp.org
+          server 2.be.pool.ntp.org
+          server 3.be.pool.ntp.org
+        dest: /etc/ntp.conf
+      become: true
+
+    - name: enable ntp service
+      ansible.builtin.systemd:
+        enabled: yes
+        name: ntp
+      become: true
+
+    - name: restart ntp service
+      ansible.builtin.systemd:
+        state: restarted
+        daemon_reload: yes
+        name: ntp
+      become: true
+    
+ #   - name: allow ntp on ufw # Tried using this module for enabling ntp on ufw but got an error each time. So i'll be switching this to a less proper module to do this. :  FAILED! => {"changed": false, "commands": ["/usr/sbin/ufw status verbose", "/usr/bin/grep -h '^### tuple' /lib/ufw/user.rules /lib/ufw/user6.rules /etc/ufw/user.rules /etc/ufw/user6.rules /var/lib/ufw/user.rules /var/lib/ufw/user6.rules", "/usr/sbin/ufw --version", "/usr/sbin/ufw allow from any to any app 'ntp'"], "msg": "ERROR: Could not find a profile matching 'ntp'\n"}
+ #     ufw:
+ #       rule: allow
+ #       name: ntp
+ #     become: true
+    - name: allow ntp ufw
+      ansible.builtin.shell:
+        cmd: sudo ufw allow ntp
+      become: true

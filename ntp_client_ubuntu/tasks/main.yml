@@ -1,0 +1,46 @@
+---
+# tasks file for ntp_client_ubuntu
+#Install NTP on an ubuntu client
+- name: Install and configure ntp for Ubuntu client
+  hosts: Ubuntu
+  handlers:
+  tasks:
+    - name: install ntpdate
+      ansible.builtin.apt: 
+        name: ntpdate
+        state: present
+      become: true
+
+    - name: edit hosts file #in this case the ntp server is the ansible controller so we will add that one to /etc/hosts
+      ansible.builtin.lineinfile: 
+        path: /etc/hosts
+        line: "203.0.113.200      AnsibleController"
+        state: present
+        backup: yes
+      become: true
+
+    - name : install ntp on client
+      ansible.builtin.apt:
+        name: ntp
+        state: present
+      become: true
+    
+    - name: edit /etc/ntp.conf
+      ansible.builtin.lineinfile:
+        path: /etc/ntp.conf
+        line: "server AnsibleController prefer iburst"
+        state: present
+        backup: yes
+      become: true
+
+    - name: enable ntp service
+      ansible.builtin.systemd:
+        enabled: yes
+        name: ntp
+      become: true
+
+    - name: restart ntp service
+      ansible.builtin.systemd:
+        state: restarted
+        name: ntp
+      become: true
